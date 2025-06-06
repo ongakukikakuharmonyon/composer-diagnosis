@@ -2,7 +2,7 @@ import streamlit as st
 import random
 
 # --- 定数・データ定義 ---
-# 【修正箇所】imageの値をローカルファイル名に変更
+# (内容は変更なし)
 COMPOSER_TYPES = {
     'A': {'name': 'ベートーヴェン', 'type': '不屈の情熱家', 'text': 'あなたは、困難な状況であるほど燃え上がる不屈の精神の持ち主。一度決めた目標に向かって、情熱的に突き進む力強さがあります。あなたのその姿は、周りの人に勇気と希望を与えるでしょう。まさに、運命の喉首を締め上げるような力強い魂を持った革命家です。', 'image': 'Aベートーヴェン.png'},
     'B': {'name': 'モーツァルト', 'type': '天才肌の自由人', 'text': 'あなたは、生まれながらの才能と遊び心を兼ね備えた天才肌。好奇心旺盛で、人生を楽しむことが得意です。あなたの周りには自然と人が集まり、その自由で明るい雰囲気で場を和ませます。退屈なルールよりも、直感的なひらめきを大切にするタイプです。', 'image': 'Bモーツァルト.png'},
@@ -89,8 +89,8 @@ def show_result_screen():
     st.title('診断結果')
     st.header(f'あなたは **{result["name"]}タイプ** - {result["type"]} です！')
     
-    # 【修正箇所】result['image']からファイル名を読み込み、キャプションを追加
-    st.image(result['image'], caption=f"あなたのタイプ：{result['name']}", use_column_width=True)
+    # 【修正箇所】非推奨のパラメータを更新
+    st.image(result['image'], caption=f"あなたのタイプ：{result['name']}", use_container_width=True)
     
     st.markdown(f"--- \n ### {result['type']} の特徴")
     st.write(result['text'])
