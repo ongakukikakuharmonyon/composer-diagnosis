@@ -90,7 +90,8 @@ def show_result_screen():
     st.header(f'あなたは **{result["name"]}タイプ** - {result["type"]} です！')
     
     # 【修正箇所】result['image']からファイル名を読み込み、キャプションを追加
-    st.image(result['image'], caption=f"あなたのタイプ：{result['name']}", use_column_width=True)
+    st.image(f"images/{result['image']}", caption=f"あなたのタイプ:{result['name']}", use_container_width=True)
+
     
     st.markdown(f"--- \n ### {result['type']} の特徴")
     st.write(result['text'])
