@@ -34,7 +34,6 @@ QUESTIONS = [
 # --- ロジック関数 ---
 
 def initialize_session_state():
-    """セッション状態を初期化する"""
     if 'screen' not in st.session_state:
         st.session_state['screen'] = 'start'
     if 'scores' not in st.session_state:
@@ -43,9 +42,11 @@ def initialize_session_state():
         st.session_state['current_question'] = 0
     if 'result_type' not in st.session_state:
         st.session_state['result_type'] = None
+    # 【ご提案の反映 ①】rerunフラグを初期化
+    if 'rerun' not in st.session_state:
+        st.session_state['rerun'] = False
 
 def calculate_result():
-    """スコアを計算して結果を決定する"""
     scores = st.session_state['scores']
     max_score = max(scores.values())
     max_types = [key for key, score in scores.items() if score == max_score]
@@ -59,7 +60,8 @@ def show_start_screen():
     st.write('いくつかの質問に答えて、あなたの性格に合った作曲家タイプを見つけましょう！')
     if st.button('診断をはじめる'):
         st.session_state['screen'] = 'question'
-        st.experimental_rerun()
+        # 【ご提案の反映 ③】rerunを直接呼ばず、フラグを立てる
+        st.session_state['rerun'] = True
 
 def show_question_screen():
     q_index = st.session_state['current_question']
@@ -82,7 +84,8 @@ def show_question_screen():
             else:
                 st.session_state['screen'] = 'result'
                 calculate_result()
-            st.experimental_rerun()
+            # 【ご提案の反映 ③】rerunを直接呼ばず、フラグを立てる
+            st.session_state['rerun'] = True
 
 def show_result_screen():
     result_type_key = st.session_state['result_type']
@@ -101,19 +104,23 @@ def show_result_screen():
             st.write(f"- {COMPOSER_TYPES[type_key]['name']}: {score} 点")
 
     if st.button('もう一度診断する'):
-        st.session_state.clear() 
-        st.experimental_rerun()
+        # session_stateをクリア
+        st.session_state.clear()
+        # 【ご提案の反映 ③】rerunフラグを立てる
+        st.session_state['rerun'] = True
 
 
 # --- メイン実行部 ---
 
 def main():
-    """
-    メインの実行関数。
-    セッションを初期化し、現在の画面状態に応じて適切な画面を表示する。
-    """
-    # 【ご指示の反映箇所】
     initialize_session_state()
+
+    # 【ご提案の反映 ②】mainの冒頭でrerunフラグをチェック
+    if st.session_state.get('rerun', False):
+        st.session_state['rerun'] = False
+        st.experimental_rerun()
+        # rerunがトリガーされたら、それ以降の処理は不要なのでreturn
+        return
 
     if st.session_state['screen'] == 'start':
         show_start_screen()
