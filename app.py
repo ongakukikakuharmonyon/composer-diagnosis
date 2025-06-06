@@ -1,19 +1,8 @@
-
----
-
-#### **2. コードの一貫性と安全性の向上 (Consistency & Safety)**
-
-ご指摘の通り、メインロジックを`main()`関数にまとめ、`if __name__ == "__main__":`で保護します。また、セッションステートのクリアも安全な`st.session_state.clear()`メソッドを使用するように修正します。
-
-以下が、これらの改善をすべて反映した新しい **`app.py`** です。
-
-```python
 import streamlit as st
 import random
 
 # --- 定数・データ定義 ---
-# アプリケーションのロジックに関わるデータは一箇所にまとめる
-
+# (内容は変更なし)
 COMPOSER_TYPES = {
     'A': {'name': 'ベートーヴェン', 'type': '不屈の情熱家', 'text': 'あなたは、困難な状況であるほど燃え上がる不屈の精神の持ち主。一度決めた目標に向かって、情熱的に突き進む力強さがあります。あなたのその姿は、周りの人に勇気と希望を与えるでしょう。まさに、運命の喉首を締め上げるような力強い魂を持った革命家です。', 'image': 'https://via.placeholder.com/400x500.png/00008B/FFFFFF?text=Beethoven'},
     'B': {'name': 'モーツァルト', 'type': '天才肌の自由人', 'text': 'あなたは、生まれながらの才能と遊び心を兼ね備えた天才肌。好奇心旺盛で、人生を楽しむことが得意です。あなたの周りには自然と人が集まり、その自由で明るい雰囲気で場を和ませます。退屈なルールよりも、直感的なひらめきを大切にするタイプです。', 'image': 'https://via.placeholder.com/400x500.png/FF69B4/FFFFFF?text=Mozart'},
@@ -28,9 +17,7 @@ COMPOSER_TYPES = {
     'K': {'name': 'ラヴェル', 'type': '完璧を求める職人', 'text': 'あなたは、細部にまでこだわり、完璧なものを創り上げることに情熱を燃やす職人気質。精密な作業を得意とし、冷静な分析力で物事を進めます。あなたの手にかかれば、どんなものも洗練された芸術品のように仕上がるでしょう。', 'image': 'https://via.placeholder.com/400x500.png/C0C0C0/000000?text=Ravel'},
     'L': {'name': 'シベリウス', 'type': '孤高の思想家', 'text': 'あなたは、都会の喧騒から離れ、静かな自然の中で思索にふけることを好む孤高の思想家です。他人に流されることなく、自分の内なる声に耳を傾けます。その落ち着いた佇まいと独立した精神は、あなたにしかない独特の深みを与えています。', 'image': 'https://via.placeholder.com/400x500.png/F5F5DC/000000?text=Sibelius'}
 }
-
 QUESTIONS = [
-    # (質問内容は変更なしのため省略)
     {'question': 'Q1. 新しい一週間が始まります。あなたの心境は？', 'answers': {'A: よし、今週もやるぞ！目標に向かって突き進む！': 'A', 'B: 新しい出会いや発見があるかな？ワクワクする。': 'B', 'C: 静かに自分のペースで、計画通りに進めたい。': 'C', 'D: 少し憂鬱...。自分の世界に浸る時間がほしい。': 'D'}},
     {'question': 'Q2. 友人へのプレゼント、何を選ぶ？', 'answers': {'A: 相手をあっと驚かせる、派手で豪華なもの。': 'G', 'B: 誰も知らないような、個性的でアーティスティックな雑貨。': 'E', 'C: 相手の趣味を徹底的にリサーチし、実用的なものを贈る。': 'K', 'D: その場のノリとひらめきで、面白グッズを選ぶ。': 'J'}},
     {'question': 'Q3. あなたが物語を書くなら、どんなテーマ？', 'answers': {'A: 一人の天才が常識を覆し、世界を変える物語。': 'I', 'B: 壮大な宇宙と生命の謎に迫る、哲学的な物語。': 'H', 'C: 知性と感情の間で揺れ動く、内面的な葛藤の物語。': 'F', 'D: 都会の喧騒を離れ、自然と共に生きる人の物語。': 'L'}},
@@ -44,17 +31,38 @@ QUESTIONS = [
 ]
 
 
+# --- ロジック関数 ---
+
+def initialize_session_state():
+    """セッション状態を初期化する"""
+    if 'screen' not in st.session_state:
+        st.session_state['screen'] = 'start'
+    if 'scores' not in st.session_state:
+        st.session_state['scores'] = {key: 0 for key in COMPOSER_TYPES.keys()}
+    if 'current_question' not in st.session_state:
+        st.session_state['current_question'] = 0
+    if 'result_type' not in st.session_state:
+        st.session_state['result_type'] = None
+
+def calculate_result():
+    """スコアを計算して結果を決定する"""
+    scores = st.session_state['scores']
+    max_score = max(scores.values())
+    max_types = [key for key, score in scores.items() if score == max_score]
+    st.session_state['result_type'] = random.choice(max_types)
+
+
 # --- 画面描画関数 ---
 
 def show_start_screen():
     st.title('🎼 作曲家タイプ診断')
     st.write('いくつかの質問に答えて、あなたの性格に合った作曲家タイプを見つけましょう！')
     if st.button('診断をはじめる'):
-        st.session_state.screen = 'question'
+        st.session_state['screen'] = 'question'
         st.experimental_rerun()
 
 def show_question_screen():
-    q_index = st.session_state.current_question
+    q_index = st.session_state['current_question']
     question_data = QUESTIONS[q_index]
 
     st.title(f"質問 {q_index + 1}/{len(QUESTIONS)}")
@@ -65,19 +73,19 @@ def show_question_screen():
         if st.button(answer_text):
             if isinstance(type_keys, list):
                 for key in type_keys:
-                    st.session_state.scores[key] += 1
+                    st.session_state['scores'][key] += 1
             else:
-                st.session_state.scores[type_keys] += 1
+                st.session_state['scores'][type_keys] += 1
             
-            if st.session_state.current_question < len(QUESTIONS) - 1:
-                st.session_state.current_question += 1
+            if st.session_state['current_question'] < len(QUESTIONS) - 1:
+                st.session_state['current_question'] += 1
             else:
-                st.session_state.screen = 'result'
+                st.session_state['screen'] = 'result'
                 calculate_result()
             st.experimental_rerun()
 
 def show_result_screen():
-    result_type_key = st.session_state.result_type
+    result_type_key = st.session_state['result_type']
     result = COMPOSER_TYPES[result_type_key]
 
     st.title('診断結果')
@@ -88,33 +96,13 @@ def show_result_screen():
     st.write(result['text'])
     
     with st.expander("あなたのスコア詳細を見る"):
-        sorted_scores = sorted(st.session_state.scores.items(), key=lambda item: item[1], reverse=True)
+        sorted_scores = sorted(st.session_state['scores'].items(), key=lambda item: item[1], reverse=True)
         for type_key, score in sorted_scores:
             st.write(f"- {COMPOSER_TYPES[type_key]['name']}: {score} 点")
 
     if st.button('もう一度診断する'):
-        # [改善点] st.session_state.clear() を使用して安全にセッションをクリア
         st.session_state.clear() 
         st.experimental_rerun()
-
-
-# --- ロジック関数 ---
-
-def initialize_session_state():
-    if 'screen' not in st.session_state:
-        st.session_state.screen = 'start'
-    if 'scores' not in st.session_state:
-        st.session_state.scores = {key: 0 for key in COMPOSER_TYPES.keys()}
-    if 'current_question' not in st.session_state:
-        st.session_state.current_question = 0
-    if 'result_type' not in st.session_state:
-        st.session_state.result_type = None
-
-def calculate_result():
-    scores = st.session_state.scores
-    max_score = max(scores.values())
-    max_types = [key for key, score in scores.items() if score == max_score]
-    st.session_state.result_type = random.choice(max_types)
 
 
 # --- メイン実行部 ---
@@ -124,15 +112,15 @@ def main():
     メインの実行関数。
     セッションを初期化し、現在の画面状態に応じて適切な画面を表示する。
     """
+    # 【ご指示の反映箇所】
     initialize_session_state()
 
-    if st.session_state.screen == 'start':
+    if st.session_state['screen'] == 'start':
         show_start_screen()
-    elif st.session_state.screen == 'question':
+    elif st.session_state['screen'] == 'question':
         show_question_screen()
-    elif st.session_state.screen == 'result':
+    elif st.session_state['screen'] == 'result':
         show_result_screen()
 
-# [改善点] __name__ == "__main__" ガードを追加
 if __name__ == "__main__":
     main()
