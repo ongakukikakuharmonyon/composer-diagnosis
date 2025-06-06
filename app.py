@@ -178,11 +178,12 @@ def show_result_screen():
     with st.expander("あなたのスコア詳細を見る"):
         st.write(st.session_state.scores)
 
-    if st.button('もう一度診断する'):
+if st.button('もう一度診断する'):
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     initialize_session_state()
     st.experimental_rerun()
+
 
 
 # 結果計算ロジック
