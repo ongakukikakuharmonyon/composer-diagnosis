@@ -179,11 +179,11 @@ def show_result_screen():
         st.write(st.session_state.scores)
 
     if st.button('もう一度診断する'):
-        # 状態をリセットしてスタート画面へ
-        for key in st.session_state.keys():
-            del st.session_state[key]
-        initialize_session_state()
-        st.experimental_rerun()
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    initialize_session_state()
+    st.experimental_rerun()
+
 
 # 結果計算ロジック
 def calculate_result():
